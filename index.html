@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Analiz Paneli</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            max-width: 500px;
+            width: 100%;
+        }
+        h2 {
+            color: #1a73e8;
+            margin-top: 0;
+            border-bottom: 2px solid #f0f2f5;
+            padding-bottom: 10px;
+        }
+        .info-group {
+            margin-bottom: 15px;
+        }
+        .label {
+            font-weight: bold;
+            color: #5f6368;
+            display: block;
+            font-size: 14px;
+        }
+        .value {
+            color: #202124;
+            font-size: 16px;
+            word-break: break-all;
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 6px;
+            margin-top: 5px;
+            display: block;
+        }
+        .loading {
+            color: #ff9800;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>İstifadəçi və Cihaz Məlumatları</h2>
+    
+    <div class="info-group">
+        <span class="label">Əməliyyat Sistemi və Brauzer (User-Agent):</span>
+        <span class="value" id="browser">Yüklənir...</span>
+    </div>
+
+    <div class="info-group">
+        <span class="label">Ekran Ölçüsü:</span>
+        <span class="value" id="screen">Yüklənir...</span>
+    </div>
+
+    <div class="info-group">
+        <span class="label">IP Ünvanı:</span>
+        <span class="value" id="ip">Yüklənir...</span>
+    </div>
+
+    <div class="info-group">
+        <span class="label">İnternet Provayderi (ISP):</span>
+        <span class="value" id="isp">Yüklənir...</span>
+    </div>
+
+    <div class="info-group">
+        <span class="label">Ölkə / Şəhər:</span>
+        <span class="value" id="location">Yüklənir...</span>
+    </div>
+
+    <div class="info-group">
+        <span class="label">Dəqiq GPS Koordinatları:</span>
+        <span class="value loading" id="gps">Cihazdan icazə gözlənilir...</span>
+    </div>
+</div>
+
+<script>
+    // 1. Cihaz və Brauzer məlumatlarının təyini
+    document.getElementById('browser').innerText = navigator.userAgent;
+    document.getElementById('screen').innerText = window.screen.width + " x " + window.screen.height;
+
+    // 2. IP və Təxmini Məkanın API vasitəsilə tapılması
+    fetch('https://ipapi.co')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('ip').innerText = data.ip;
+            document.getElementById('isp').innerText = data.org;
+            document.getElementById('location').innerText = data.country_name + ", " + data.city;
+        })
+        .catch(error => {
+            document.getElementById('ip').innerText = "Xəta baş verdi";
+            document.getElementById('location').innerText = "Məlumat alınmadı";
+        });
+
+    // 3. Cihazın Dəqiq GPS Məkanı (İstifadəçi icazə verdikdə işləyir)
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                const gpsElement = document.getElementById('gps');
+                gpsElement.innerText = `Enlik: ${lat}, Uzunluq: ${lon}`;
+                gpsElement.classList.remove('loading');
+            },
+            (error) => {
+                const gpsElement = document.getElementById('gps');
+                gpsElement.innerText = "İstifadəçi GPS icazəsini rədd etdi.";
+                gpsElement.classList.remove('loading');
+            }
+        );
+    } else {
+        document.getElementById('gps').innerText = "Bu brauzer GPS dəstəkləmir.";
+    }
+</script>
+
+</body>
+</html>
